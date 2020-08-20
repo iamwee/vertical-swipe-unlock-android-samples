@@ -30,8 +30,8 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
     // desired size declaration
     private var desiredWidthDp = 60f
     private var desiredHeightDp = 140f
-    private var desiredWidth: Int = 0
-    private var desiredHeight: Int = 0
+    private val desiredWidth: Int
+    private val desiredHeight: Int
 
     // locker button size which declared with smallest desired size
     private var circleSize = 0
