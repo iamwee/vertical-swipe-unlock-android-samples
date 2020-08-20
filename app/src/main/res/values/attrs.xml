@@ -2,6 +2,7 @@
 <resources>
 
     <declare-styleable name="UnLockerSwipeVerticalView">
+        <attr name="normalBackgroundAlpha" format="integer" />
         <attr name="normalBackgroundColor" format="reference|color" />
         <attr name="unlockBackgroundColor" format="reference|color" />
         <attr name="tint" />

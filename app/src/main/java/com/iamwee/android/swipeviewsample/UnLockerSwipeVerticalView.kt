@@ -43,6 +43,7 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
     private val tintColor: Int
     private val tintIndicatorColor: Int
     private val srcMarginPx: Int
+    private val normalBackgroundAlpha: Int
 
     // drawable in normal state inside locker button
     private lateinit var unlockIconDrawable: Drawable
@@ -109,7 +110,6 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
 
     init {
         val accentColor = ContextCompat.getColor(context, R.color.colorAccent)
-        val colorPrimary = ContextCompat.getColor(context, R.color.colorPrimary)
         val attr = context.theme.obtainStyledAttributes(attrs, R.styleable.UnLockerSwipeVerticalView, defStyleAttr, 0)
 
         try {
@@ -119,6 +119,7 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
             unLockerButtonColor = attr.getColor(R.styleable.UnLockerSwipeVerticalView_unLockerButtonColor, accentColor)
             tintIndicatorColor = attr.getColor(R.styleable.UnLockerSwipeVerticalView_tintIndicator, accentColor)
             srcMarginPx = attr.getDimensionPixelSize(R.styleable.UnLockerSwipeVerticalView_srcMargin, 20.dpToPx)
+            normalBackgroundAlpha = attr.getInt(R.styleable.UnLockerSwipeVerticalView_normalBackgroundAlpha, 50)
 
             unlockIcon = R.drawable.ic_baseline_arrow_upward_24
             lockIcon = R.drawable.ic_baseline_expand_less_24
@@ -318,7 +319,7 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
             floatArrayOf(0.0f, 0.55f),
             Shader.TileMode.CLAMP
         )
-        normalBackgroundPaint.alpha = 50
+        normalBackgroundPaint.alpha = normalBackgroundAlpha
 
         circleSize = if (surfaceWidth < surfaceHeight) surfaceWidth else surfaceHeight
         //force unLock button to bottom

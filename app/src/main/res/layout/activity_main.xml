@@ -20,6 +20,7 @@
         android:layout_height="wrap_content"
         app:srcMargin="12dp"
         app:tintIndicator="@color/colorRedSample"
+        app:normalBackgroundAlpha="30"
         app:unLockerButtonColor="@color/colorRedSample"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
