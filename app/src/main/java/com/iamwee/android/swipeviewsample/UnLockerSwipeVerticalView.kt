@@ -8,10 +8,11 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 
-class SwipeUnlockVerticalView @JvmOverloads constructor(
+class UnLockerSwipeVerticalView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
@@ -26,16 +27,21 @@ class SwipeUnlockVerticalView @JvmOverloads constructor(
     private var surfaceHeight = 0
 
     // desired size declaration
-    private var desiredWidthDp = 65f
+    private var desiredWidthDp = 60f
     private var desiredHeightDp = 140f
     private var desiredWidth: Int = 0
     private var desiredHeight: Int = 0
 
-    // locker button margin declaration
-    private var circleMarginDp = 0f
-    private var circleMargin = 0
-
+    // locker button size which declared with smallest desired size
     private var circleSize = 0
+
+    //resources declaration
+    private val normalBackgroundColor: Int
+    private val unlockBackgroundColor: Int
+    private val unLockerButtonColor: Int
+    private val tintColor: Int
+    private val tintIndicatorColor: Int
+    private val srcMarginPx: Int
 
     // drawable in normal state inside locker button
     private lateinit var unlockIconDrawable: Drawable
@@ -45,10 +51,7 @@ class SwipeUnlockVerticalView @JvmOverloads constructor(
             if (field != 0) {
                 ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
                     unlockIconDrawable = it
-                    DrawableCompat.setTint(
-                        it,
-                        resources.getColor(android.R.color.white, context?.theme)
-                    )
+                    DrawableCompat.setTint(it, tintColor)
                 }
             }
         }
@@ -61,10 +64,7 @@ class SwipeUnlockVerticalView @JvmOverloads constructor(
             if (field != 0) {
                 ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
                     lockIconDrawable = it
-                    DrawableCompat.setTint(
-                        it,
-                        resources.getColor(android.R.color.white, context?.theme)
-                    )
+                    DrawableCompat.setTint(it, tintColor)
                 }
             }
         }
@@ -76,7 +76,7 @@ class SwipeUnlockVerticalView @JvmOverloads constructor(
             if (field != 0) {
                 ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
                     lockerButtonUpperDrawable = it
-                    DrawableCompat.setTint(it, Color.RED)
+                    DrawableCompat.setTint(it, tintIndicatorColor)
                 }
             }
         }
@@ -107,6 +107,28 @@ class SwipeUnlockVerticalView @JvmOverloads constructor(
     private val pressedOrDraggingBackgroundRectF = RectF(Rect())
 
     init {
+        val accentColor = ContextCompat.getColor(context, R.color.colorAccent)
+        val colorPrimary = ContextCompat.getColor(context, R.color.colorPrimary)
+        val attr = context.theme.obtainStyledAttributes(attrs, R.styleable.UnLockerSwipeVerticalView, defStyleAttr, 0)
+
+        try {
+            normalBackgroundColor = attr.getColor(R.styleable.UnLockerSwipeVerticalView_normalBackgroundColor, Color.parseColor("#fd968d"))
+            unlockBackgroundColor = attr.getColor(R.styleable.UnLockerSwipeVerticalView_unlockBackgroundColor, Color.parseColor("#f1f1f1"))
+            tintColor = attr.getColor(R.styleable.UnLockerSwipeVerticalView_tint, Color.WHITE)
+            unLockerButtonColor = attr.getColor(R.styleable.UnLockerSwipeVerticalView_unLockerButtonColor, accentColor)
+            tintIndicatorColor = attr.getColor(R.styleable.UnLockerSwipeVerticalView_tintIndicator, accentColor)
+            srcMarginPx = attr.getDimensionPixelSize(R.styleable.UnLockerSwipeVerticalView_srcMargin, 20.dpToPx)
+
+            unlockIcon = R.drawable.ic_baseline_arrow_upward_24
+            lockIcon = R.drawable.ic_baseline_expand_less_24
+            lockerButtonUpperRes = R.drawable.ic_baseline_expand_less_24
+
+            // paint initialization
+            lockerButtonPaint.color = unLockerButtonColor
+            pressedOrDraggingBackgroundPaint.color = unlockBackgroundColor
+        } finally {
+            attr.recycle()
+        }
 
         //desired size initialization
         desiredWidth = TypedValue.applyDimension(
@@ -120,42 +142,34 @@ class SwipeUnlockVerticalView @JvmOverloads constructor(
             desiredHeightDp,
             resources.displayMetrics
         ).toInt()
-
-        circleMargin = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            circleMarginDp,
-            resources.displayMetrics
-        ).toInt()
-
-        // paint initialization
-        lockerButtonPaint.color = Color.RED
-        pressedOrDraggingBackgroundPaint.color = Color.parseColor("#fff1f1f1")
-
-        // attr initialization
-        unlockIcon = R.drawable.ic_baseline_arrow_upward_24
-        lockIcon = R.drawable.ic_baseline_expand_less_24
-        lockerButtonUpperRes = R.drawable.ic_baseline_expand_less_24
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
+        lockerButtonRectF.set(
+            0f,
+            currentCircleY - (circleSize / 2),
+            circleSize.toFloat(),
+            currentCircleY + (circleSize.toFloat() / 2)
+        )
+
         normalBackgroundRectF.set(
             0f,
-            currentCircleY - (circleSize.toFloat() / 2),
-            surfaceWidth.toFloat(),
-            surfaceHeight.toFloat()
+            0f,
+            lockerButtonRectF.right,
+            lockerButtonRectF.bottom
         )
         canvas.drawRoundRect(
             normalBackgroundRectF,
             circleSize.toFloat(),
             circleSize.toFloat(),
-            pressedOrDraggingBackgroundPaint
+            normalBackgroundPaint
         )
 
         pressedOrDraggingBackgroundRectF.set(
-            0f,
-            0f,
+            lockerButtonRectF.left,
+            lockerButtonRectF.top,
             surfaceWidth.toFloat(),
             surfaceHeight.toFloat()
         )
@@ -163,14 +177,7 @@ class SwipeUnlockVerticalView @JvmOverloads constructor(
             pressedOrDraggingBackgroundRectF,
             circleSize.toFloat(),
             circleSize.toFloat(),
-            normalBackgroundPaint
-        )
-
-        lockerButtonRectF.set(
-            0f,
-            currentCircleY - (circleSize / 2),
-            circleSize.toFloat(),
-            currentCircleY + (circleSize.toFloat() / 2)
+            pressedOrDraggingBackgroundPaint
         )
 
         canvas.drawRoundRect(
@@ -199,18 +206,18 @@ class SwipeUnlockVerticalView @JvmOverloads constructor(
         canvas.save()
         if (!isPressing) {
             unlockIconDrawable.setBounds(
-                lockerButtonRectF.left.toInt() + 20.dpToPx,
-                lockerButtonRectF.top.toInt() + 20.dpToPx,
-                lockerButtonRectF.right.toInt() - 20.dpToPx,
-                lockerButtonRectF.bottom.toInt() - 20.dpToPx
+                lockerButtonRectF.left.toInt() + srcMarginPx,
+                lockerButtonRectF.top.toInt() + srcMarginPx,
+                lockerButtonRectF.right.toInt() - srcMarginPx,
+                lockerButtonRectF.bottom.toInt() - srcMarginPx
             )
             unlockIconDrawable.draw(canvas)
         } else {
             lockIconDrawable.setBounds(
-                lockerButtonRectF.left.toInt() + 20.dpToPx,
-                lockerButtonRectF.top.toInt() + 20.dpToPx,
-                lockerButtonRectF.right.toInt() - 20.dpToPx,
-                lockerButtonRectF.bottom.toInt() - 20.dpToPx
+                lockerButtonRectF.left.toInt() + srcMarginPx,
+                lockerButtonRectF.top.toInt() + srcMarginPx,
+                lockerButtonRectF.right.toInt() - srcMarginPx,
+                lockerButtonRectF.bottom.toInt() - srcMarginPx
             )
             lockIconDrawable.draw(canvas)
         }
@@ -300,11 +307,11 @@ class SwipeUnlockVerticalView @JvmOverloads constructor(
 
         normalBackgroundPaint.shader = LinearGradient(
             0f, 0f, 0f, surfaceHeight.toFloat(),
-            intArrayOf(Color.TRANSPARENT, Color.BLACK),
-            floatArrayOf(0.0f, 0.65f),
+            intArrayOf(Color.TRANSPARENT, normalBackgroundColor),
+            floatArrayOf(0.0f, 0.55f),
             Shader.TileMode.CLAMP
         )
-        normalBackgroundPaint.alpha = 10
+        normalBackgroundPaint.alpha = 50
 
         circleSize = if (surfaceWidth < surfaceHeight) surfaceWidth else surfaceHeight
         if (currentCircleY == 0f) {

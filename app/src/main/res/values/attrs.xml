@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="UnLockerSwipeVerticalView">
+        <attr name="normalBackgroundColor" format="reference|color" />
+        <attr name="unlockBackgroundColor" format="reference|color" />
+        <attr name="tint" />
+
+        <attr name="unLockerButtonColor" format="reference|color" />
+        <attr name="lockSrc" format="reference" />
+        <attr name="unlockSrc" format="reference" />
+        <attr name="indicatorSrc" format="reference" />
+
+        <attr name="srcMargin" format="reference|dimension" />
+
+        <attr name="tintIndicator" format="reference|color" />
+    </declare-styleable>
+
+</resources>

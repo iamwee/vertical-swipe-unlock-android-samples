@@ -15,9 +15,12 @@
         android:layout_height="wrap_content"
         app:text="Example" />
 
-    <com.iamwee.android.swipeviewsample.SwipeUnlockVerticalView
+    <com.iamwee.android.swipeviewsample.UnLockerSwipeVerticalView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        app:srcMargin="12dp"
+        app:tintIndicator="@color/colorRedSample"
+        app:unLockerButtonColor="@color/colorRedSample"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
