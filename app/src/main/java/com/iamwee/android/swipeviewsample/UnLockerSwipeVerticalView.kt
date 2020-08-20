@@ -83,7 +83,7 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
         }
 
     // locker button current position
-    private var currentCircleY = 0f
+    private var currentTopY = 0f
 
     // the last position of locker button, used to calculate with the latest y position for finding diff of y
     private var currentY = 0f
@@ -150,9 +150,9 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
 
         lockerButtonRectF.set(
             0f,
-            currentCircleY - (circleSize / 2),
+            currentTopY,
             circleSize.toFloat(),
-            currentCircleY + (circleSize.toFloat() / 2)
+            currentTopY + circleSize
         )
 
         normalBackgroundRectF.set(
@@ -195,9 +195,9 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
             val drawableGap = 4.dpToPx
             lockerButtonUpperDrawable.setBounds(
                 ((surfaceWidth / 2) - (drawableWidth / 2)),
-                (currentCircleY - (circleSize.toFloat() / 2) - drawableGap - drawableHeight).toInt(),
+                (currentTopY - drawableGap - drawableHeight).toInt(),
                 ((surfaceWidth / 2) + (drawableWidth / 2)),
-                ((currentCircleY - (circleSize.toFloat() / 2)) - drawableGap).toInt()
+                (currentTopY - drawableGap).toInt()
             )
             lockerButtonUpperDrawable.draw(canvas)
 
@@ -256,12 +256,9 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
                     val diffY = event.y - currentY
                     currentY = event.y
                     //Check if diff value is negative or positive, if positive then increment value, else decrement value
-                    currentCircleY += diffY
+                    currentTopY += diffY
                     //coerce the position value
-                    currentCircleY = currentCircleY.coerceIn(
-                        circleSize.toFloat() / 2,
-                        (surfaceHeight - (circleSize / 2)).toFloat()
-                    )
+                    currentTopY = currentTopY.coerceIn(0f, surfaceHeight.toFloat() - circleSize)
                     //invalidate view
                     invalidate()
                 }
@@ -273,19 +270,19 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
                     val eventY = event.y.coerceAtLeast(0f)
                     val percent = ((height - eventY) * 100 / height)
 
-                    val tmpCurrentCircleY = currentCircleY
-                    currentCircleY = if (percent <= 50) {
+                    val tmpCurrentCircleY = currentTopY
+                    currentTopY = if (percent <= 50) {
                         isUnlocked = false
-                        height - (circleSize / 2).toFloat()
+                        height.toFloat() - circleSize
                     } else {
                         isUnlocked = true
-                        circleSize.toFloat() / 2
+                        0f
                     }
                     isPressing = false
 
-                    val postAnimator = ValueAnimator.ofFloat(tmpCurrentCircleY, currentCircleY)
+                    val postAnimator = ValueAnimator.ofFloat(tmpCurrentCircleY, currentTopY)
                     postAnimator.addUpdateListener {
-                        currentCircleY = it.animatedValue as Float
+                        currentTopY = it.animatedValue as Float
                         invalidate()
                     }
                     postAnimator.duration = 250L
@@ -324,8 +321,9 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
         normalBackgroundPaint.alpha = 50
 
         circleSize = if (surfaceWidth < surfaceHeight) surfaceWidth else surfaceHeight
-        if (currentCircleY == 0f) {
-            currentCircleY = surfaceHeight - (circleSize.toFloat() / 2)
+        //force unLock button to bottom
+        if (currentTopY == 0f) {
+            currentTopY = surfaceHeight.toFloat() - circleSize
         }
     }
 
