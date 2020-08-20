@@ -121,9 +121,9 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
             srcMarginPx = attr.getDimensionPixelSize(R.styleable.UnLockerSwipeVerticalView_srcMargin, 20.dpToPx)
             normalBackgroundAlpha = attr.getInt(R.styleable.UnLockerSwipeVerticalView_normalBackgroundAlpha, 50)
 
-            unlockIcon = R.drawable.ic_baseline_arrow_upward_24
-            lockIcon = R.drawable.ic_baseline_expand_less_24
-            lockerButtonUpperRes = R.drawable.ic_baseline_expand_less_24
+            unlockIcon = attr.getResourceId(R.styleable.UnLockerSwipeVerticalView_unlockSrc, R.drawable.ic_baseline_arrow_upward_24)
+            lockIcon = attr.getResourceId(R.styleable.UnLockerSwipeVerticalView_lockSrc, unlockIcon)
+            lockerButtonUpperRes = attr.getResourceId(R.styleable.UnLockerSwipeVerticalView_indicatorSrc, R.drawable.ic_baseline_expand_less_24)
 
             // paint initialization
             lockerButtonPaint.color = unLockerButtonColor
@@ -252,6 +252,7 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
                 }
                 MotionEvent.ACTION_MOVE -> {
                     if (!isPressing) return true
+                    //TODO calculate seek position here, and emit listener when seed position is 0..100
                     Log.d(TAG, "ACTION_MOVE[x=${event.x}, y=${event.y}]")
                     //Get diff of y between currentY and eventY
                     val diffY = event.y - currentY
