@@ -2,11 +2,14 @@ package com.iamwee.android.swipeviewsample
 
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.graphics.drawable.DrawableCompat
 
 class SwipeUnlockVerticalView @JvmOverloads constructor(
     context: Context,
@@ -18,43 +21,94 @@ class SwipeUnlockVerticalView @JvmOverloads constructor(
         private const val TAG = "SwipeUnlockVerticalView"
     }
 
+    // surface declaration
+    private var surfaceWidth = 0
+    private var surfaceHeight = 0
+
+    // desired size declaration
     private var desiredWidthDp = 65f
     private var desiredHeightDp = 140f
     private var desiredWidth: Int = 0
     private var desiredHeight: Int = 0
 
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.RED
-        style = Paint.Style.FILL
-    }
-
-    private val paint2 = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.BLACK
-        style = Paint.Style.FILL
-    }
-
-    private val paint3 = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        shader = LinearGradient(
-            0f,
-            0f,
-            0f,
-            500f,
-            intArrayOf(Color.TRANSPARENT, Color.GRAY, Color.BLACK),
-            floatArrayOf(0.0f, 0.55f, 0.75f),
-            Shader.TileMode.CLAMP
-        )
-    }
-
-    private var surfaceWidth = 0
-    private var surfaceHeight = 0
-
+    // locker button margin declaration
+    private var circleMarginDp = 0f
     private var circleMargin = 0
-    private var circleSize = 0
-    private var _currentCircleY = 0f
 
+    private var circleSize = 0
+
+    // drawable in normal state inside locker button
+    private lateinit var unlockIconDrawable: Drawable
+    private var unlockIcon: Int = R.drawable.ic_baseline_arrow_upward_24
+        set(value) {
+            field = value
+            if (field != 0) {
+                ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
+                    unlockIconDrawable = it
+                    DrawableCompat.setTint(
+                        it,
+                        resources.getColor(android.R.color.white, context?.theme)
+                    )
+                }
+            }
+        }
+
+    // drawable in pressed state inside locker button
+    private lateinit var lockIconDrawable: Drawable
+    private var lockIcon: Int = R.drawable.ic_baseline_expand_less_24
+        set(value) {
+            field = value
+            if (field != 0) {
+                ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
+                    lockIconDrawable = it
+                    DrawableCompat.setTint(
+                        it,
+                        resources.getColor(android.R.color.white, context?.theme)
+                    )
+                }
+            }
+        }
+
+    private lateinit var lockerButtonUpperDrawable: Drawable
+    private var lockerButtonUpperRes: Int = R.drawable.ic_baseline_expand_less_24
+        set(value) {
+            field = value
+            if (field != 0) {
+                ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
+                    lockerButtonUpperDrawable = it
+                    DrawableCompat.setTint(it, Color.RED)
+                }
+            }
+        }
+
+    // locker button current position
+    private var currentCircleY = 0f
+
+    // the last position of locker button, used to calculate with the latest y position for finding diff of y
+    private var currentY = 0f
+
+    // state declaration
     private var isPressing: Boolean = false
+    private var isUnlocked: Boolean = false
+
+    //paint that used to draw locker button
+    private val lockerButtonPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    //paint that used to draw background when state are in pressed and dragging
+    private val pressedOrDraggingBackgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    //print that used to draw background in normal state
+    private val normalBackgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    private val lockerButtonRectF: RectF = RectF(Rect())
+
+    private val normalBackgroundRectF = RectF(Rect())
+
+    private val pressedOrDraggingBackgroundRectF = RectF(Rect())
 
     init {
+
+        //desired size initialization
         desiredWidth = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
             desiredWidthDp,
@@ -66,99 +120,164 @@ class SwipeUnlockVerticalView @JvmOverloads constructor(
             desiredHeightDp,
             resources.displayMetrics
         ).toInt()
+
+        circleMargin = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            circleMarginDp,
+            resources.displayMetrics
+        ).toInt()
+
+        // paint initialization
+        lockerButtonPaint.color = Color.RED
+        pressedOrDraggingBackgroundPaint.color = Color.parseColor("#fff1f1f1")
+
+        // attr initialization
+        unlockIcon = R.drawable.ic_baseline_arrow_upward_24
+        lockIcon = R.drawable.ic_baseline_expand_less_24
+        lockerButtonUpperRes = R.drawable.ic_baseline_expand_less_24
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val width = surfaceWidth
-        val height = surfaceHeight
 
-        if (circleSize == 0) {
-            circleSize = if (width < height) width else height
-        }
-        if (_currentCircleY == 0f) {
-            _currentCircleY = height - (circleSize.toFloat() / 2)
-        }
+        normalBackgroundRectF.set(
+            0f,
+            currentCircleY - (circleSize.toFloat() / 2),
+            surfaceWidth.toFloat(),
+            surfaceHeight.toFloat()
+        )
+        canvas.drawRoundRect(
+            normalBackgroundRectF,
+            circleSize.toFloat(),
+            circleSize.toFloat(),
+            pressedOrDraggingBackgroundPaint
+        )
 
-        if (isPressing) {
-            canvas.drawRoundRect(
-                0f,
-                _currentCircleY - (circleSize.toFloat() / 2),
-                width.toFloat(),
-                height.toFloat(),
-                circleSize.toFloat(),
-                circleSize.toFloat(),
-                paint2
-            )
-        } else {
-            canvas.drawRoundRect(
-                0f,
-                0f,
-                width.toFloat(),
-                height.toFloat(),
-                circleSize.toFloat(),
-                circleSize.toFloat(),
-                paint3
-            )
-        }
+        pressedOrDraggingBackgroundRectF.set(
+            0f,
+            0f,
+            surfaceWidth.toFloat(),
+            surfaceHeight.toFloat()
+        )
+        canvas.drawRoundRect(
+            pressedOrDraggingBackgroundRectF,
+            circleSize.toFloat(),
+            circleSize.toFloat(),
+            normalBackgroundPaint
+        )
+
+        lockerButtonRectF.set(
+            0f,
+            currentCircleY - (circleSize / 2),
+            circleSize.toFloat(),
+            currentCircleY + (circleSize.toFloat() / 2)
+        )
+
+        canvas.drawRoundRect(
+            lockerButtonRectF,
+            circleSize.toFloat(),
+            circleSize.toFloat(),
+            lockerButtonPaint
+        )
 
         if (!isPressing) {
-            canvas.drawRect(
-                ((width / 2) - 20).toFloat(),
-                _currentCircleY - (circleSize.toFloat() / 2) - 50,
-                ((width / 2) + 20).toFloat(), (_currentCircleY - (circleSize.toFloat() / 2)) - 30, paint
+            canvas.save()
+            val drawableWidth = lockerButtonUpperDrawable.intrinsicWidth
+            val drawableHeight = lockerButtonUpperDrawable.intrinsicHeight
+            val drawableGap = 4.dpToPx
+            lockerButtonUpperDrawable.setBounds(
+                ((surfaceWidth / 2) - (drawableWidth / 2)),
+                (currentCircleY - (circleSize.toFloat() / 2) - drawableGap - drawableHeight).toInt(),
+                ((surfaceWidth / 2) + (drawableWidth / 2)),
+                ((currentCircleY - (circleSize.toFloat() / 2)) - drawableGap).toInt()
             )
+            lockerButtonUpperDrawable.draw(canvas)
+
+            canvas.restore()
         }
 
-        canvas.drawCircle(
-            circleSize.toFloat() / 2, _currentCircleY,
-            (circleSize.toFloat() / 2) - circleMargin,
-            paint
-        )
+        canvas.save()
+        if (!isPressing) {
+            unlockIconDrawable.setBounds(
+                lockerButtonRectF.left.toInt() + 20.dpToPx,
+                lockerButtonRectF.top.toInt() + 20.dpToPx,
+                lockerButtonRectF.right.toInt() - 20.dpToPx,
+                lockerButtonRectF.bottom.toInt() - 20.dpToPx
+            )
+            unlockIconDrawable.draw(canvas)
+        } else {
+            lockIconDrawable.setBounds(
+                lockerButtonRectF.left.toInt() + 20.dpToPx,
+                lockerButtonRectF.top.toInt() + 20.dpToPx,
+                lockerButtonRectF.right.toInt() - 20.dpToPx,
+                lockerButtonRectF.bottom.toInt() - 20.dpToPx
+            )
+            lockIconDrawable.draw(canvas)
+        }
+        canvas.restore()
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-                Log.d(TAG, "ACTION_DOWN[x=${event.x}, y=${event.y}]")
-                isPressing = true
-                //setup position value
-                invalidate()
-            }
-            MotionEvent.ACTION_MOVE -> {
-                val height = surfaceHeight
-                Log.d(TAG, "ACTION_MOVE[x=${event.x}, y=${event.y}]")
-                //Get diff of y between currentY and eventY
-                val diffY = event.y - _currentCircleY
+    @Suppress("RedundantOverride")
+    override fun performClick(): Boolean {
+        return super.performClick()
+    }
 
-                //Check if diff value is negative or positive, if positive then increment value, else decrement value
-
-                //coerce the position value
-
-                //invalidate view
-                _currentCircleY = event.y
-                _currentCircleY = event.y.coerceIn(
-                    circleSize.toFloat() / 2,
-                    (height - (circleSize / 2)).toFloat()
-                )
-                invalidate()
-            }
-            MotionEvent.ACTION_UP -> {
-                val height = surfaceHeight
-                Log.d(TAG, "ACTION_UP[x=${event.x}, y=${event.y}]")
-                val eventY = event.y.coerceAtLeast(0f)
-                val percent = ((height - eventY) * 100 / height)
-                _currentCircleY = if (percent <= 50) {
-                    height - (circleSize / 2).toFloat()
-                } else {
-                    circleSize.toFloat() / 2
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        if (event != null && isEnabled) {
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    Log.d(TAG, "ACTION_DOWN[x=${event.x}, y=${event.y}]")
+                    if (event.x in lockerButtonRectF.left..lockerButtonRectF.right
+                        && event.y in lockerButtonRectF.top..lockerButtonRectF.bottom
+                    ) {
+                        isPressing = true
+                        //setup position value
+                        currentY = event.y.coerceIn(
+                            circleSize.toFloat() / 2,
+                            (height - (circleSize / 2)).toFloat()
+                        )
+                        parent.requestDisallowInterceptTouchEvent(true)
+                        invalidate()
+                    }
+                    performClick()
                 }
-                isPressing = false
-                invalidate()
+                MotionEvent.ACTION_MOVE -> {
+                    if (!isPressing) return true
+                    Log.d(TAG, "ACTION_MOVE[x=${event.x}, y=${event.y}]")
+                    //Get diff of y between currentY and eventY
+                    val diffY = event.y - currentY
+                    currentY = event.y
+                    //Check if diff value is negative or positive, if positive then increment value, else decrement value
+                    currentCircleY += diffY
+                    //coerce the position value
+                    currentCircleY = currentCircleY.coerceIn(
+                        circleSize.toFloat() / 2,
+                        (surfaceHeight - (circleSize / 2)).toFloat()
+                    )
+                    //invalidate view
+                    invalidate()
+                }
+                MotionEvent.ACTION_UP -> {
+                    if (!isPressing) return true
+                    parent.requestDisallowInterceptTouchEvent(false)
+                    val height = surfaceHeight
+                    Log.d(TAG, "ACTION_UP[x=${event.x}, y=${event.y}]")
+                    val eventY = event.y.coerceAtLeast(0f)
+                    val percent = ((height - eventY) * 100 / height)
+                    currentCircleY = if (percent <= 50) {
+                        isUnlocked = false
+                        height - (circleSize / 2).toFloat()
+                    } else {
+                        isUnlocked = true
+                        circleSize.toFloat() / 2
+                    }
+                    isPressing = false
+                    invalidate()
+                }
             }
-            else -> return false
+            return true
         }
-        return true
+        return super.onTouchEvent(event)
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -178,7 +297,26 @@ class SwipeUnlockVerticalView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         surfaceWidth = w
         surfaceHeight = h
+
+        normalBackgroundPaint.shader = LinearGradient(
+            0f, 0f, 0f, surfaceHeight.toFloat(),
+            intArrayOf(Color.TRANSPARENT, Color.BLACK),
+            floatArrayOf(0.0f, 0.65f),
+            Shader.TileMode.CLAMP
+        )
+        normalBackgroundPaint.alpha = 10
+
+        circleSize = if (surfaceWidth < surfaceHeight) surfaceWidth else surfaceHeight
+        if (currentCircleY == 0f) {
+            currentCircleY = surfaceHeight - (circleSize.toFloat() / 2)
+        }
     }
 
+    private val Int.dpToPx: Int
+        get() = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            this.toFloat(),
+            resources.displayMetrics
+        ).toInt()
 
 }
