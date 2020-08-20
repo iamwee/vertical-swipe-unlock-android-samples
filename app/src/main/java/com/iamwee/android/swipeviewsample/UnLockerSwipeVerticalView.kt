@@ -1,5 +1,6 @@
 package com.iamwee.android.swipeviewsample
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.graphics.drawable.Drawable
@@ -271,6 +272,8 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
                     Log.d(TAG, "ACTION_UP[x=${event.x}, y=${event.y}]")
                     val eventY = event.y.coerceAtLeast(0f)
                     val percent = ((height - eventY) * 100 / height)
+
+                    val tmpCurrentCircleY = currentCircleY
                     currentCircleY = if (percent <= 50) {
                         isUnlocked = false
                         height - (circleSize / 2).toFloat()
@@ -279,7 +282,14 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
                         circleSize.toFloat() / 2
                     }
                     isPressing = false
-                    invalidate()
+
+                    val postAnimator = ValueAnimator.ofFloat(tmpCurrentCircleY, currentCircleY)
+                    postAnimator.addUpdateListener {
+                        currentCircleY = it.animatedValue as Float
+                        invalidate()
+                    }
+                    postAnimator.duration = 250L
+                    postAnimator.start()
                 }
             }
             return true
