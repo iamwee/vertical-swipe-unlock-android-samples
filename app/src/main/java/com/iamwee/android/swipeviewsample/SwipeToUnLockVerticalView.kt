@@ -17,7 +17,7 @@ import kotlin.properties.Delegates
 
 typealias OnSwipeProgressChangeListener = (progress: Int) -> Unit
 
-class UnLockerSwipeVerticalView @JvmOverloads constructor(
+class SwipeToUnLockVerticalView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
@@ -155,20 +155,20 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
 
     init {
         val accentColor = ContextCompat.getColor(context, R.color.colorAccent)
-        val attr = context.theme.obtainStyledAttributes(attrs, R.styleable.UnLockerSwipeVerticalView, defStyleAttr, 0)
+        val attr = context.theme.obtainStyledAttributes(attrs, R.styleable.SwipeToUnLockVerticalView, defStyleAttr, 0)
 
         try {
-            normalBackgroundColor = attr.getColor(R.styleable.UnLockerSwipeVerticalView_normalBackgroundColor, Color.parseColor("#fd968d"))
-            unlockBackgroundColor = attr.getColor(R.styleable.UnLockerSwipeVerticalView_unlockBackgroundColor, Color.parseColor("#f1f1f1"))
-            tintColor = attr.getColor(R.styleable.UnLockerSwipeVerticalView_tint, Color.WHITE)
-            unLockerButtonColor = attr.getColor(R.styleable.UnLockerSwipeVerticalView_unLockerButtonColor, accentColor)
-            tintIndicatorColor = attr.getColor(R.styleable.UnLockerSwipeVerticalView_tintIndicator, accentColor)
-            srcMarginPx = attr.getDimensionPixelSize(R.styleable.UnLockerSwipeVerticalView_srcMargin, 20.dpToPx)
-            normalBackgroundAlpha = attr.getInt(R.styleable.UnLockerSwipeVerticalView_normalBackgroundAlpha, 50)
+            normalBackgroundColor = attr.getColor(R.styleable.SwipeToUnLockVerticalView_normalBackgroundColor, Color.parseColor("#fd968d"))
+            unlockBackgroundColor = attr.getColor(R.styleable.SwipeToUnLockVerticalView_unlockBackgroundColor, Color.parseColor("#f1f1f1"))
+            tintColor = attr.getColor(R.styleable.SwipeToUnLockVerticalView_tint, Color.WHITE)
+            unLockerButtonColor = attr.getColor(R.styleable.SwipeToUnLockVerticalView_unLockerButtonColor, accentColor)
+            tintIndicatorColor = attr.getColor(R.styleable.SwipeToUnLockVerticalView_tintIndicator, accentColor)
+            srcMarginPx = attr.getDimensionPixelSize(R.styleable.SwipeToUnLockVerticalView_srcMargin, 20.dpToPx)
+            normalBackgroundAlpha = attr.getInt(R.styleable.SwipeToUnLockVerticalView_normalBackgroundAlpha, 50)
 
-            unlockIcon = attr.getResourceId(R.styleable.UnLockerSwipeVerticalView_unlockSrc, R.drawable.ic_baseline_arrow_upward_24)
-            lockIcon = attr.getResourceId(R.styleable.UnLockerSwipeVerticalView_lockSrc, unlockIcon)
-            lockerButtonUpperRes = attr.getResourceId(R.styleable.UnLockerSwipeVerticalView_indicatorSrc, R.drawable.ic_baseline_expand_less_24)
+            unlockIcon = attr.getResourceId(R.styleable.SwipeToUnLockVerticalView_unlockSrc, R.drawable.ic_baseline_arrow_upward_24)
+            lockIcon = attr.getResourceId(R.styleable.SwipeToUnLockVerticalView_lockSrc, unlockIcon)
+            lockerButtonUpperRes = attr.getResourceId(R.styleable.SwipeToUnLockVerticalView_indicatorSrc, R.drawable.ic_baseline_expand_less_24)
 
             // paint initialization
             lockerButtonPaint.color = unLockerButtonColor

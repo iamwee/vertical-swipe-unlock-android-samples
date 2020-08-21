@@ -14,7 +14,7 @@ class MainActivity : AppCompatActivity() {
             textView.alpha = (it.toFloat() / 100)
         }
 
-        unLockerSwipeVerticalView.setOnSwipeActionListener(object : UnLockerSwipeVerticalView.OnSwipeActionListener {
+        unLockerSwipeVerticalView.setOnSwipeActionListener(object : SwipeToUnLockVerticalView.OnSwipeActionListener {
             override fun onSwipeSucceeded() {
                 Toast.makeText(this@MainActivity, "Swipe succeeded", Toast.LENGTH_SHORT).show()
             }

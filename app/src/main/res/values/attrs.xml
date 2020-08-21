@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <declare-styleable name="UnLockerSwipeVerticalView">
+    <declare-styleable name="SwipeToUnLockVerticalView">
         <attr name="normalBackgroundAlpha" format="integer" />
         <attr name="normalBackgroundColor" format="reference|color" />
         <attr name="unlockBackgroundColor" format="reference|color" />
