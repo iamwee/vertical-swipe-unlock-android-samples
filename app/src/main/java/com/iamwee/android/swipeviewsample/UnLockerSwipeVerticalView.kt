@@ -12,6 +12,10 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import kotlin.math.roundToInt
+import kotlin.properties.Delegates
+
+typealias OnSwipeProgressChangeListener = (progress: Int) -> Unit
 
 class UnLockerSwipeVerticalView @JvmOverloads constructor(
     context: Context,
@@ -21,6 +25,7 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
 
     companion object {
         private const val TAG = "SwipeUnlockVerticalView"
+        private const val SNAP_TO_UNLOCK_PROGRESS = 60
     }
 
     // surface declaration
@@ -85,6 +90,34 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
 
     // locker button current position
     private var currentTopY = 0f
+        set(value) {
+            field = value
+            //calculate progress included button offset
+
+            //Data given: currentTopY=300, height=350, buttonSize=50, progress=100
+
+            //currentTopY=300 => 100%
+            //currentTopY=250 => 250 * 100 / 300 => 84%
+            val currentTopProgress = (value * 100 / (surfaceHeight - circleSize)).roundToInt()
+
+            // 100% of button size => 50
+            // 84% of button size => 84 * 50 / 100 => 42
+            val buttonSizeOffset = (currentTopProgress * circleSize / 100)
+
+            // height=350 => 100%
+            // 250+42 = 292 => 292 * 100 / 350 => 84%
+            val actualProgress = ((value + buttonSizeOffset) * 100 / surfaceHeight).roundToInt().coerceIn(0..100)
+            progress = 100 - actualProgress
+            //16 = 100 - 84
+        }
+
+    // progress position
+    private var progress: Int by Delegates.observable(0) { _, old, new ->
+        if (old != new || old == 0 || new == 0) {
+            Log.d(TAG, "currentProgress:$new")
+            onProgressChangeListener?.invoke(new)
+        }
+    }
 
     // the last position of locker button, used to calculate with the latest y position for finding diff of y
     private var currentY = 0f
@@ -92,6 +125,18 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
     // state declaration
     private var isPressing: Boolean = false
     private var isUnlocked: Boolean = false
+        set(value) {
+            field = value
+            if (value) {
+                onSwipeActionListener?.onSwipeSucceeded()
+            } else {
+                onSwipeActionListener?.onSwipeFailed()
+            }
+        }
+
+    // listener declaration
+    private var onProgressChangeListener: OnSwipeProgressChangeListener? = null
+    private var onSwipeActionListener: OnSwipeActionListener? = null
 
     //paint that used to draw locker button
     private val lockerButtonPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -235,7 +280,6 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
         if (event != null && isEnabled) {
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    Log.d(TAG, "ACTION_DOWN[x=${event.x}, y=${event.y}]")
                     if (event.x in lockerButtonRectF.left..lockerButtonRectF.right
                         && event.y in lockerButtonRectF.top..lockerButtonRectF.bottom
                     ) {
@@ -252,8 +296,6 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
                 }
                 MotionEvent.ACTION_MOVE -> {
                     if (!isPressing) return true
-                    //TODO calculate seek position here, and emit listener when seed position is 0..100
-                    Log.d(TAG, "ACTION_MOVE[x=${event.x}, y=${event.y}]")
                     //Get diff of y between currentY and eventY
                     val diffY = event.y - currentY
                     currentY = event.y
@@ -267,22 +309,17 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
                 MotionEvent.ACTION_UP -> {
                     if (!isPressing) return true
                     parent.requestDisallowInterceptTouchEvent(false)
-                    val height = surfaceHeight
-                    Log.d(TAG, "ACTION_UP[x=${event.x}, y=${event.y}]")
-                    val eventY = event.y.coerceAtLeast(0f)
-                    val percent = ((height - eventY) * 100 / height)
 
-                    val tmpCurrentCircleY = currentTopY
-                    currentTopY = if (percent <= 50) {
-                        isUnlocked = false
-                        height.toFloat() - circleSize
-                    } else {
+                    val destCurrentTopY = if (progress > SNAP_TO_UNLOCK_PROGRESS) {
                         isUnlocked = true
                         0f
+                    } else {
+                        isUnlocked = false
+                        surfaceHeight.toFloat() - circleSize
                     }
                     isPressing = false
 
-                    val postAnimator = ValueAnimator.ofFloat(tmpCurrentCircleY, currentTopY)
+                    val postAnimator = ValueAnimator.ofFloat(currentTopY, destCurrentTopY)
                     postAnimator.addUpdateListener {
                         currentTopY = it.animatedValue as Float
                         invalidate()
@@ -329,11 +366,24 @@ class UnLockerSwipeVerticalView @JvmOverloads constructor(
         }
     }
 
+    fun setOnProgressChangeListener(listener: OnSwipeProgressChangeListener) {
+        onProgressChangeListener = listener
+    }
+
+    fun setOnSwipeActionListener(listener: OnSwipeActionListener) {
+        onSwipeActionListener = listener
+    }
+
     private val Int.dpToPx: Int
         get() = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
             this.toFloat(),
             resources.displayMetrics
         ).toInt()
+
+    interface OnSwipeActionListener {
+        fun onSwipeSucceeded()
+        fun onSwipeFailed()
+    }
 
 }
