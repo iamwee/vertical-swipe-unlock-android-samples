@@ -8,23 +8,35 @@
 
     <com.ncorti.slidetoact.SlideToActView
         android:layout_width="match_parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_margin="32dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         android:layout_height="wrap_content"
+        android:layout_margin="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:text="Example" />
 
-    <com.iamwee.android.swipeviewsample.UnLockerSwipeVerticalView
+    <TextView
+        android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:srcMargin="12dp"
-        app:tintIndicator="@color/colorRedSample"
-        app:normalBackgroundAlpha="30"
-        app:unLockerButtonColor="@color/colorRedSample"
+        android:layout_marginBottom="32dp"
+        android:alpha="0"
+        android:text="Hello world"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.iamwee.android.swipeviewsample.UnLockerSwipeVerticalView
+        android:id="@+id/unLockerSwipeVerticalView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:normalBackgroundAlpha="30"
+        app:srcMargin="12dp"
+        app:tintIndicator="@color/colorRedSample"
+        app:unLockerButtonColor="@color/colorRedSample" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
