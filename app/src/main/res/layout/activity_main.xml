@@ -25,8 +25,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:normalBackgroundAlpha="30"
-        app:srcMargin="12dp"
-        app:tintIndicator="@color/colorRedSample"
+        app:srcMargin="20dp"
+        app:indicatorSrc="@drawable/ic_unlock4"
+        app:unlockSrc="@drawable/ic_unlock3"
         app:unLockerButtonColor="@color/colorRedSample" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -58,7 +58,9 @@ class SwipeToUnLockVerticalView @JvmOverloads constructor(
             if (field != 0) {
                 ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
                     unlockIconDrawable = it
-                    DrawableCompat.setTint(it, tintColor)
+                    if (tintColor != 0) {
+                        DrawableCompat.setTint(it, tintColor)
+                    }
                 }
             }
         }
@@ -71,7 +73,9 @@ class SwipeToUnLockVerticalView @JvmOverloads constructor(
             if (field != 0) {
                 ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
                     lockIconDrawable = it
-                    DrawableCompat.setTint(it, tintColor)
+                    if (tintColor != 0) {
+                        DrawableCompat.setTint(it, tintColor)
+                    }
                 }
             }
         }
@@ -83,7 +87,9 @@ class SwipeToUnLockVerticalView @JvmOverloads constructor(
             if (field != 0) {
                 ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
                     lockerButtonUpperDrawable = it
-                    DrawableCompat.setTint(it, tintIndicatorColor)
+                    if (tintIndicatorColor != 0) {
+                        DrawableCompat.setTint(it, tintIndicatorColor)
+                    }
                 }
             }
         }
@@ -160,9 +166,9 @@ class SwipeToUnLockVerticalView @JvmOverloads constructor(
         try {
             normalBackgroundColor = attr.getColor(R.styleable.SwipeToUnLockVerticalView_normalBackgroundColor, Color.parseColor("#fd968d"))
             unlockBackgroundColor = attr.getColor(R.styleable.SwipeToUnLockVerticalView_unlockBackgroundColor, Color.parseColor("#f1f1f1"))
-            tintColor = attr.getColor(R.styleable.SwipeToUnLockVerticalView_tint, Color.WHITE)
+            tintColor = attr.getColor(R.styleable.SwipeToUnLockVerticalView_tint, 0)
             unLockerButtonColor = attr.getColor(R.styleable.SwipeToUnLockVerticalView_unLockerButtonColor, accentColor)
-            tintIndicatorColor = attr.getColor(R.styleable.SwipeToUnLockVerticalView_tintIndicator, accentColor)
+            tintIndicatorColor = attr.getColor(R.styleable.SwipeToUnLockVerticalView_tintIndicator, 0)
             srcMarginPx = attr.getDimensionPixelSize(R.styleable.SwipeToUnLockVerticalView_srcMargin, 20.dpToPx)
             normalBackgroundAlpha = attr.getInt(R.styleable.SwipeToUnLockVerticalView_normalBackgroundAlpha, 50)
 
@@ -251,20 +257,36 @@ class SwipeToUnLockVerticalView @JvmOverloads constructor(
         }
 
         canvas.save()
+        val lockerButtonWidth = (lockerButtonRectF.right - lockerButtonRectF.left).roundToInt()
+        val lockerButtonHeight = (lockerButtonRectF.bottom - lockerButtonRectF.top).roundToInt()
         if (!isPressing) {
+            val (unlockWidth, unlockHeight) = SizeOffsetCalculator.getActualSize(
+                width = unlockIconDrawable.intrinsicWidth,
+                height = unlockIconDrawable.intrinsicHeight,
+                surfaceWidth = lockerButtonWidth,
+                surfaceHeight = lockerButtonHeight,
+                margin = srcMarginPx
+            )
             unlockIconDrawable.setBounds(
-                lockerButtonRectF.left.toInt() + srcMarginPx,
-                lockerButtonRectF.top.toInt() + srcMarginPx,
-                lockerButtonRectF.right.toInt() - srcMarginPx,
-                lockerButtonRectF.bottom.toInt() - srcMarginPx
+                lockerButtonRectF.left.toInt() + (lockerButtonWidth / 2) - (unlockWidth / 2),
+                lockerButtonRectF.top.toInt() + (lockerButtonHeight / 2) - (unlockHeight / 2),
+                lockerButtonRectF.left.toInt() + (lockerButtonWidth / 2) + (unlockWidth / 2),
+                lockerButtonRectF.top.toInt() + (lockerButtonHeight / 2) + (unlockHeight / 2)
             )
             unlockIconDrawable.draw(canvas)
         } else {
+            val (lockWidth, lockHeight) = SizeOffsetCalculator.getActualSize(
+                width = unlockIconDrawable.intrinsicWidth,
+                height = unlockIconDrawable.intrinsicHeight,
+                surfaceWidth = lockerButtonWidth,
+                surfaceHeight = lockerButtonHeight,
+                margin = srcMarginPx
+            )
             lockIconDrawable.setBounds(
-                lockerButtonRectF.left.toInt() + srcMarginPx,
-                lockerButtonRectF.top.toInt() + srcMarginPx,
-                lockerButtonRectF.right.toInt() - srcMarginPx,
-                lockerButtonRectF.bottom.toInt() - srcMarginPx
+                lockerButtonRectF.left.toInt() + (lockerButtonWidth / 2) - (lockWidth / 2),
+                lockerButtonRectF.top.toInt() + (lockerButtonHeight / 2) - (lockHeight / 2),
+                lockerButtonRectF.left.toInt() + (lockerButtonWidth / 2) + (lockWidth / 2),
+                lockerButtonRectF.top.toInt() + (lockerButtonHeight / 2) + (lockHeight / 2)
             )
             lockIconDrawable.draw(canvas)
         }
