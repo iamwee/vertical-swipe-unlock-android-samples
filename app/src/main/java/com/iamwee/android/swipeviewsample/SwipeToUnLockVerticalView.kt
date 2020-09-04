@@ -12,6 +12,8 @@ import android.view.View
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
+import com.airbnb.lottie.LottieCompositionFactory
+import com.airbnb.lottie.LottieDrawable
 import kotlin.math.roundToInt
 import kotlin.properties.Delegates
 
@@ -50,49 +52,12 @@ class SwipeToUnLockVerticalView @JvmOverloads constructor(
     private val srcMarginPx: Int
     private val normalBackgroundAlpha: Int
 
-    // drawable in normal state inside locker button
-    private lateinit var unlockIconDrawable: Drawable
-    private var unlockIcon: Int = R.drawable.ic_baseline_arrow_upward_24
-        set(value) {
-            field = value
-            if (field != 0) {
-                ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
-                    unlockIconDrawable = it
-                    if (tintColor != 0) {
-                        DrawableCompat.setTint(it, tintColor)
-                    }
-                }
-            }
-        }
 
-    // drawable in pressed state inside locker button
-    private lateinit var lockIconDrawable: Drawable
-    private var lockIcon: Int = R.drawable.ic_baseline_expand_less_24
-        set(value) {
-            field = value
-            if (field != 0) {
-                ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
-                    lockIconDrawable = it
-                    if (tintColor != 0) {
-                        DrawableCompat.setTint(it, tintColor)
-                    }
-                }
-            }
-        }
+    private val lockerButtonLottieDrawable by lazy { LottieDrawable() }
+    private var lockerButtonLottieScale: Float = 1.0f
 
-    private lateinit var lockerButtonUpperDrawable: Drawable
-    private var lockerButtonUpperRes: Int = R.drawable.ic_baseline_expand_less_24
-        set(value) {
-            field = value
-            if (field != 0) {
-                ResourcesCompat.getDrawable(context.resources, value, context.theme)?.let {
-                    lockerButtonUpperDrawable = it
-                    if (tintIndicatorColor != 0) {
-                        DrawableCompat.setTint(it, tintIndicatorColor)
-                    }
-                }
-            }
-        }
+    private val lockerButtonUpperLottieDrawable by lazy { LottieDrawable() }
+    private var lockerButtonUpperScale: Float = 1.0f
 
     // locker button current position
     private var currentTopY = 0f
@@ -172,9 +137,9 @@ class SwipeToUnLockVerticalView @JvmOverloads constructor(
             srcMarginPx = attr.getDimensionPixelSize(R.styleable.SwipeToUnLockVerticalView_srcMargin, 20.dpToPx)
             normalBackgroundAlpha = attr.getInt(R.styleable.SwipeToUnLockVerticalView_normalBackgroundAlpha, 50)
 
-            unlockIcon = attr.getResourceId(R.styleable.SwipeToUnLockVerticalView_unlockSrc, R.drawable.ic_baseline_arrow_upward_24)
-            lockIcon = attr.getResourceId(R.styleable.SwipeToUnLockVerticalView_lockSrc, unlockIcon)
-            lockerButtonUpperRes = attr.getResourceId(R.styleable.SwipeToUnLockVerticalView_indicatorSrc, R.drawable.ic_baseline_expand_less_24)
+//            unlockIcon = attr.getResourceId(R.styleable.SwipeToUnLockVerticalView_unlockSrc, R.drawable.ic_baseline_arrow_upward_24)
+//            lockIcon = attr.getResourceId(R.styleable.SwipeToUnLockVerticalView_lockSrc, unlockIcon)
+//            lockerButtonUpperRes = attr.getResourceId(R.styleable.SwipeToUnLockVerticalView_indicatorSrc, R.drawable.ic_baseline_expand_less_24)
 
             // paint initialization
             lockerButtonPaint.color = unLockerButtonColor
@@ -233,64 +198,23 @@ class SwipeToUnLockVerticalView @JvmOverloads constructor(
             pressedOrDraggingBackgroundPaint
         )
 
-        canvas.drawRoundRect(
-            lockerButtonRectF,
-            circleSize.toFloat(),
-            circleSize.toFloat(),
-            lockerButtonPaint
-        )
+        //TODO drawable lottie button here...
+        canvas.save()
 
-        if (!isPressing) {
-            canvas.save()
-            val drawableWidth = lockerButtonUpperDrawable.intrinsicWidth
-            val drawableHeight = lockerButtonUpperDrawable.intrinsicHeight
-            val drawableGap = 4.dpToPx
-            lockerButtonUpperDrawable.setBounds(
-                ((surfaceWidth / 2) - (drawableWidth / 2)),
-                (currentTopY - drawableGap - drawableHeight).toInt(),
-                ((surfaceWidth / 2) + (drawableWidth / 2)),
-                (currentTopY - drawableGap).toInt()
-            )
-            lockerButtonUpperDrawable.draw(canvas)
-
-            canvas.restore()
-        }
+        canvas.translate(lockerButtonRectF.left, lockerButtonRectF.top)
+        canvas.scale(lockerButtonLottieScale, lockerButtonLottieScale)
+        lockerButtonLottieDrawable.draw(canvas)
+        canvas.restore()
 
         canvas.save()
-        val lockerButtonWidth = (lockerButtonRectF.right - lockerButtonRectF.left).roundToInt()
-        val lockerButtonHeight = (lockerButtonRectF.bottom - lockerButtonRectF.top).roundToInt()
-        if (!isPressing) {
-            val (unlockWidth, unlockHeight) = SizeOffsetCalculator.getActualSize(
-                width = unlockIconDrawable.intrinsicWidth,
-                height = unlockIconDrawable.intrinsicHeight,
-                surfaceWidth = lockerButtonWidth,
-                surfaceHeight = lockerButtonHeight,
-                margin = srcMarginPx
-            )
-            unlockIconDrawable.setBounds(
-                lockerButtonRectF.left.toInt() + (lockerButtonWidth / 2) - (unlockWidth / 2),
-                lockerButtonRectF.top.toInt() + (lockerButtonHeight / 2) - (unlockHeight / 2),
-                lockerButtonRectF.left.toInt() + (lockerButtonWidth / 2) + (unlockWidth / 2),
-                lockerButtonRectF.top.toInt() + (lockerButtonHeight / 2) + (unlockHeight / 2)
-            )
-            unlockIconDrawable.draw(canvas)
-        } else {
-            val (lockWidth, lockHeight) = SizeOffsetCalculator.getActualSize(
-                width = unlockIconDrawable.intrinsicWidth,
-                height = unlockIconDrawable.intrinsicHeight,
-                surfaceWidth = lockerButtonWidth,
-                surfaceHeight = lockerButtonHeight,
-                margin = srcMarginPx
-            )
-            lockIconDrawable.setBounds(
-                lockerButtonRectF.left.toInt() + (lockerButtonWidth / 2) - (lockWidth / 2),
-                lockerButtonRectF.top.toInt() + (lockerButtonHeight / 2) - (lockHeight / 2),
-                lockerButtonRectF.left.toInt() + (lockerButtonWidth / 2) + (lockWidth / 2),
-                lockerButtonRectF.top.toInt() + (lockerButtonHeight / 2) + (lockHeight / 2)
-            )
-            lockIconDrawable.draw(canvas)
-        }
+        val drawableWidth = lockerButtonUpperLottieDrawable.intrinsicWidth * lockerButtonUpperScale
+        val drawableHeight = lockerButtonUpperLottieDrawable.intrinsicHeight * lockerButtonUpperScale
+        val drawableGap = 6.dpToPx
+        canvas.translate(((surfaceWidth / 2) - (drawableWidth / 2)), (currentTopY - drawableGap - drawableHeight))
+        canvas.scale(lockerButtonUpperScale, lockerButtonUpperScale)
+        lockerButtonUpperLottieDrawable.draw(canvas)
         canvas.restore()
+
     }
 
     @Suppress("RedundantOverride")
@@ -385,6 +309,46 @@ class SwipeToUnLockVerticalView @JvmOverloads constructor(
         //force unLock button to bottom
         if (currentTopY == 0f) {
             currentTopY = surfaceHeight.toFloat() - circleSize
+        }
+
+        LottieCompositionFactory.fromRawRes(context, R.raw.unlock_background).addListener {
+            lockerButtonUpperLottieDrawable.apply {
+                composition = it
+                repeatCount = LottieDrawable.INFINITE
+                addAnimatorUpdateListener { invalidate() }
+                playAnimation()
+            }
+            lockerButtonUpperScale = ((surfaceWidth / 2) * 100f / it.bounds.right.toFloat()) / 100f
+        }
+
+        LottieCompositionFactory.fromRawRes(context, R.raw.unlock).addListener {
+            lockerButtonLottieDrawable.apply {
+                composition = it
+                repeatCount = LottieDrawable.INFINITE
+                addAnimatorUpdateListener { invalidate() }
+                playAnimation()
+            }
+            lockerButtonLottieScale = (surfaceWidth * 100f / it.bounds.right.toFloat()) / 100f
+        }
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        if (!lockerButtonUpperLottieDrawable.isAnimating && lockerButtonUpperLottieDrawable.composition != null) {
+            lockerButtonUpperLottieDrawable.playAnimation()
+        }
+        if (!lockerButtonLottieDrawable.isAnimating && lockerButtonLottieDrawable.composition != null) {
+            lockerButtonLottieDrawable.playAnimation()
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        if (lockerButtonUpperLottieDrawable.isAnimating) {
+            lockerButtonUpperLottieDrawable.pauseAnimation()
+        }
+        if (lockerButtonLottieDrawable.isAnimating) {
+            lockerButtonLottieDrawable.pauseAnimation()
         }
     }
 

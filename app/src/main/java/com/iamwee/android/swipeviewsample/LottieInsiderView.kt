@@ -32,6 +32,7 @@ class LottieInsiderView @JvmOverloads constructor(
     private val desiredHeight: Int
 
     private val lottieDrawable by lazy { LottieDrawable() }
+    private var lottieDrawableScale: Float = 1.0f
     private val lottieView by lazy { LottieAnimationView(context) }
 
     init {
@@ -59,6 +60,8 @@ class LottieInsiderView @JvmOverloads constructor(
         canvas ?: return
         canvas.drawRect(0f, 0f, surfaceWidth.toFloat(), surfaceHeight.toFloat(), paint)
         canvas.save()
+        canvas.translate(0f, 50f)
+        canvas.scale(lottieDrawableScale, lottieDrawableScale)
         lottieDrawable.draw(canvas)
         canvas.restore()
 
@@ -90,7 +93,7 @@ class LottieInsiderView @JvmOverloads constructor(
         LottieCompositionFactory.fromRawRes(context, R.raw.unlock).addListener {
             lottieDrawable.composition = it
             lottieDrawable.repeatCount = LottieDrawable.INFINITE
-            lottieDrawable.scale = ((surfaceWidth / 2) * 100f / it.bounds.right.toFloat()) / 100f
+            lottieDrawableScale = ((surfaceWidth / 2) * 100f / it.bounds.right.toFloat()) / 100f
             lottieDrawable.addAnimatorUpdateListener { invalidate() }
             lottieDrawable.playAnimation()
             invalidate()
