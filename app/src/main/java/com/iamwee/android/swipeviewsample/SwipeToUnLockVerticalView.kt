@@ -98,29 +98,15 @@ class SwipeToUnLockVerticalView @JvmOverloads constructor(
     private var currentTopY = 0f
         set(value) {
             field = value
-            //calculate progress included button offset
-
-            //Data given: currentTopY=300, height=350, buttonSize=50, progress=100
-
-            //currentTopY=300 => 100%
-            //currentTopY=250 => 250 * 100 / 300 => 84%
             val currentTopProgress = (value * 100 / (surfaceHeight - circleSize)).roundToInt()
-
-            // 100% of button size => 50
-            // 84% of button size => 84 * 50 / 100 => 42
             val buttonSizeOffset = (currentTopProgress * circleSize / 100)
-
-            // height=350 => 100%
-            // 250+42 = 292 => 292 * 100 / 350 => 84%
             val actualProgress = ((value + buttonSizeOffset) * 100 / surfaceHeight).roundToInt().coerceIn(0..100)
             progress = 100 - actualProgress
-            //16 = 100 - 84
         }
 
     // progress position
     private var progress: Int by Delegates.observable(0) { _, old, new ->
         if (old != new || old == 0 || new == 0) {
-            Log.d(TAG, "currentProgress:$new")
             onProgressChangeListener?.invoke(new)
         }
     }
